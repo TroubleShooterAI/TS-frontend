@@ -1,0 +1,46 @@
+name: "✨ Feature Request"
+description: "새로운 기능 구현 및 개선 아이디어를 제안합니다."
+title: "[Feature] "
+labels: ["enhancement"]
+assignees: []
+
+body:
+  - type: markdown
+    attributes:
+      value: |
+        새로운 아이디어나 제안을 공유해 주셔서 감사합니다!
+
+  - type: textarea
+    id: feature-description
+    attributes:
+      label: 기능 설명
+      description: 제안할 기능에 대해 설명해주세요.
+      placeholder: "예: 마이페이지에 프로필 이미지 변경 기능을 추가하고자 합니다."
+    validations:
+      required: true
+
+  - type: textarea
+    id: motivation
+    attributes:
+      label: 제안 배경 및 목적
+      description: 이 기능이 왜 필요한지, 어떤 문제를 해결하는지 작성해주세요.
+    validations:
+      required: true
+
+  - type: textarea
+    id: todo-list
+    attributes:
+      label: 상세 작업 내용 (To-Do)
+      description: 구체적으로 작업해야 할 태스크 항목을 적어주세요.
+      placeholder: |
+        - [ ] 프로필 이미지 업로드 컴포넌트 개발
+        - [ ] 이미지 용량 제한 및 유효성 검사
+        - [ ] API 연동 및 상태 업데이트
+    validations:
+      required: true
+
+  - type: textarea
+    id: design-reference
+    attributes:
+      label: 참고 자료 (Figma / 스크린샷 등)
+      description: Figma 링크나 디자인 시안이 있다면 첨부해주세요.
