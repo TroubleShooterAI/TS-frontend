@@ -1,12 +1,13 @@
 import { apiClient } from './client';
 import type { LoginResponse, SignupResponse } from '../types/auth.ts';
 
-// 회원 가입 API
+// 회원가입 API
 export const signupApi = async (email: string, password: string): Promise<SignupResponse> => {
-    const response = await apiClient.post<SignupResponse>(
-        '/auth/signup?email=${encodeURIComponent(email)}&password=${encodeURIComponent(password)}'
-    );
-    return response.data;
+  const response = await apiClient.post<SignupResponse>('/auth/signup', {
+    email,
+    password,
+  });
+  return response.data;
 };
 
 // 로그인 API
