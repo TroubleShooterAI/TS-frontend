@@ -2,6 +2,8 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { loginApi, signupApi } from '../api/auth';
 import { ShieldAlert, Terminal, Lock, Mail, ArrowRight } from 'lucide-react';
+import { GoogleLogin } from '@react-oauth/google';
+import { apiClient } from '../api/client';
 
 export default function LoginPage() {
   const [isLogin, setIsLogin] = useState(true);
@@ -12,6 +14,7 @@ export default function LoginPage() {
 
   const navigate = useNavigate();
 
+  // 일반 이메일/비밀번호 로그인 및 회원가입
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setErrorMsg('');
@@ -19,12 +22,10 @@ export default function LoginPage() {
 
     try {
       if (isLogin) {
-        // 로그인 처리
         const res = await loginApi(email, password);
         localStorage.setItem('token', res.access_token);
-        navigate('/'); // 메인 대시보드로 이동
+        navigate('/');
       } else {
-        // 회원가입 처리
         await signupApi(email, password);
         alert('회원가입이 완료되었습니다. 로그인해 주세요.');
         setIsLogin(true);
@@ -38,12 +39,31 @@ export default function LoginPage() {
     }
   };
 
+  // 구글 OAuth 로그인 핸들러
+  const handleGoogleSuccess = async (credentialResponse: any) => {
+    try {
+      setIsLoading(true);
+      setErrorMsg('');
+      const res = await apiClient.post('/auth/google', {
+        id_token: credentialResponse.credential,
+      });
+      localStorage.setItem('token', res.data.access_token);
+      navigate('/');
+    } catch (err: any) {
+      console.error('Google Login Error:', err);
+      const detail = err.response?.data?.detail;
+      setErrorMsg(typeof detail === 'string' ? detail : '구글 인증 처리 중 오류가 발생했습니다.');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   return (
     <div className="min-h-screen flex items-center justify-center bg-slate-950 px-4">
       {/* Background Glow Filter */}
       <div className="absolute w-[500px] h-[500px] bg-blue-600/10 rounded-full blur-3xl pointer-events-none" />
 
-      <div className="w-full max-max-w-md bg-slate-900/80 border border-slate-800 rounded-2xl p-8 shadow-2xl backdrop-blur-md relative z-10 max-w-md">
+      <div className="w-full bg-slate-900/80 border border-slate-800 rounded-2xl p-8 shadow-2xl backdrop-blur-md relative z-10 max-w-md">
         {/* Header Icon & Title */}
         <div className="flex flex-col items-center mb-8">
           <div className="w-14 h-14 bg-blue-500/10 border border-blue-500/20 rounded-2xl flex items-center justify-center mb-4 text-blue-400">
@@ -100,7 +120,7 @@ export default function LoginPage() {
           <button
             type="submit"
             disabled={isLoading}
-            className="w-full bg-blue-600 hover:bg-blue-500 text-white font-medium py-2.5 rounded-xl transition-all shadow-lg shadow-blue-600/20 flex items-center justify-center gap-2 text-sm mt-6 disabled:opacity-50"
+            className="w-full bg-blue-600 hover:bg-blue-500 text-white font-medium py-2.5 rounded-xl transition-all shadow-lg shadow-blue-600/20 flex items-center justify-center gap-2 text-sm mt-6 disabled:opacity-50 cursor-pointer"
           >
             {isLoading ? (
               <span>처리 중...</span>
@@ -113,6 +133,27 @@ export default function LoginPage() {
           </button>
         </form>
 
+        {/* Divider */}
+        <div className="relative my-6">
+          <div className="absolute inset-0 flex items-center">
+            <div className="w-full border-t border-slate-800" />
+          </div>
+          <div className="relative flex justify-center text-xs uppercase">
+            <span className="bg-slate-900 px-3 text-slate-500 font-mono">OR</span>
+          </div>
+        </div>
+
+        {/* Google Login Component */}
+        <div className="flex justify-center flex-col items-center gap-2">
+          <GoogleLogin
+            onSuccess={handleGoogleSuccess}
+            onError={() => setErrorMsg('구글 인증에 실패했습니다.')}
+            theme="filled_black"
+            shape="circle"
+            //width="350"
+          />
+        </div>
+
         {/* Toggle Login/Signup */}
         <div className="mt-6 text-center">
           <button
@@ -121,7 +162,7 @@ export default function LoginPage() {
               setIsLogin(!isLogin);
               setErrorMsg('');
             }}
-            className="text-xs text-slate-400 hover:text-slate-200 transition-colors underline underline-offset-4"
+            className="text-xs text-slate-400 hover:text-slate-200 transition-colors underline underline-offset-4 cursor-pointer"
           >
             {isLogin ? '계정이 없으신가요? 회원가입하기' : '이미 계정이 있으신가요? 로그인하기'}
           </button>
