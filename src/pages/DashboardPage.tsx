@@ -4,13 +4,15 @@ import { getErrorsApi } from '../api/errors';
 import type { ErrorLog } from '../api/errors';
 import { 
   ShieldAlert, LogOut, RefreshCw, AlertCircle, 
-  CheckCircle2, Clock, Sparkles, Terminal, ChevronRight 
+  CheckCircle2, Clock, Sparkles, Terminal, ChevronRight, HelpCircle 
 } from 'lucide-react';
+import OnboardingModal from '../components/OnboardingModal';
 
 export default function DashboardPage() {
   const [logs, setLogs] = useState<ErrorLog[]>([]);
   const [selectedLog, setSelectedLog] = useState<ErrorLog | null>(null);
   const [isLoading, setIsLoading] = useState<boolean>(true);
+  const [isModalOpen, setIsModalOpen] = useState<boolean>(false);
   const navigate = useNavigate();
 
   // 에러 목록 로드
@@ -21,6 +23,11 @@ export default function DashboardPage() {
       setLogs(data);
       if (data.length > 0 && !selectedLog) {
         setSelectedLog(data[0]); // 첫 번째 항목 기본 선택
+      }
+      
+      // 수집된 로그가 없는 경우 온보딩 가이드 모달 자동 오픈
+      if (data.length === 0) {
+        setIsModalOpen(true);
       }
     } catch (err) {
       console.error('로그 로드 실패:', err);
@@ -57,7 +64,17 @@ export default function DashboardPage() {
             <span className="text-xs px-2 py-0.5 bg-blue-500/20 text-blue-400 rounded-full border border-blue-500/30 font-mono">v1.0</span>
           </h1>
         </div>
+        
         <div className="flex items-center gap-3">
+          {/* 서비스 연동 가이드 버튼 */}
+          <button
+            onClick={() => setIsModalOpen(true)}
+            className="flex items-center gap-1.5 bg-blue-500/10 border border-blue-500/20 text-blue-400 hover:bg-blue-500/20 px-3 py-1.5 rounded-xl text-sm transition-colors cursor-pointer font-medium"
+          >
+            <HelpCircle className="w-4 h-4" />
+            <span>연동 가이드</span>
+          </button>
+
           <button
             onClick={fetchLogs}
             className="p-2 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-xl transition-colors cursor-pointer"
@@ -65,6 +82,7 @@ export default function DashboardPage() {
           >
             <RefreshCw className={`w-4 h-4 ${isLoading ? 'animate-spin' : ''}`} />
           </button>
+
           <button
             onClick={handleLogout}
             className="flex items-center gap-2 bg-slate-800 hover:bg-red-500/20 hover:text-red-400 hover:border-red-500/30 border border-slate-700 text-slate-300 px-3 py-1.5 rounded-xl text-sm transition-all cursor-pointer"
@@ -118,8 +136,14 @@ export default function DashboardPage() {
             </h2>
             <div className="flex-1 overflow-y-auto space-y-2 pr-1 custom-scrollbar">
               {logs.length === 0 ? (
-                <div className="h-full flex items-center justify-center text-slate-500 text-sm">
-                  수집된 에러 로그가 없습니다.
+                <div className="h-full flex flex-col items-center justify-center text-slate-500 text-sm space-y-2">
+                  <p>수집된 에러 로그가 없습니다.</p>
+                  <button 
+                    onClick={() => setIsModalOpen(true)}
+                    className="text-xs text-blue-400 underline hover:text-blue-300 cursor-pointer"
+                  >
+                    연동 가이드 확인하기
+                  </button>
                 </div>
               ) : (
                 logs.map((log) => {
@@ -198,6 +222,9 @@ export default function DashboardPage() {
           </div>
         </div>
       </main>
+
+      {/* 서비스 연동 온보딩 모달 */}
+      <OnboardingModal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} />
     </div>
   );
 }
