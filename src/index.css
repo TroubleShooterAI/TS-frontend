@@ -1,5 +1,9 @@
 @import "tailwindcss";
 
+/* Tailwind v4 전용: .dark 클래스 제어 설정 */
+@custom-variant dark (&:where(.dark, .dark *));
+
+/* body 태그에서 고정된 bg-slate-950을 제거합니다 */
 body {
-  @apply bg-slate-950 text-slate-100 min-h-screen font-sans;
+  @apply bg-slate-100 text-slate-800 dark:bg-slate-950 dark:text-slate-100 min-h-screen font-sans transition-colors duration-200;
 }

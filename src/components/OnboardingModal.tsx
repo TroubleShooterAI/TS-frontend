@@ -75,7 +75,6 @@ from troubleshooter import TroubleShooter
 # 1. 일반 Python 앱 연동 시 (단 1줄만 추가)
 ts = TroubleShooter(service_name="Payment-Service")
 
-
 # 2. FastAPI 프레임워크 연동 시
 from fastapi import FastAPI
 app = FastAPI()
@@ -101,22 +100,22 @@ ts.init_fastapi(app) # FastAPI 전역 에러 바인딩
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/80 backdrop-blur-sm p-4">
-      <div className="bg-slate-900 border border-slate-800 rounded-2xl max-w-3xl w-full shadow-2xl overflow-hidden flex flex-col max-h-[90vh]">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 dark:bg-slate-950/80 backdrop-blur-sm p-4">
+      <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl max-w-3xl w-full shadow-2xl overflow-hidden flex flex-col max-h-[90vh]">
         {/* Modal Header */}
-        <div className="p-6 border-b border-slate-800 flex items-center justify-between">
+        <div className="p-6 border-b border-slate-200 dark:border-slate-800 flex items-center justify-between">
           <div>
-            <h2 className="text-lg font-bold text-slate-100 flex items-center gap-2">
-              <Server className="w-5 h-5 text-blue-400" />
+            <h2 className="text-lg font-bold text-slate-900 dark:text-slate-100 flex items-center gap-2">
+              <Server className="w-5 h-5 text-blue-600 dark:text-blue-400" />
               TroubleShooter SDK 연동 가이드
             </h2>
-            <p className="text-xs text-slate-400 mt-1">
+            <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
               `troubleshooter.py` 파일 하나만 추가하면 서비스의 에러가 자동으로 대시보드에 집계됩니다.
             </p>
           </div>
           <button
             onClick={onClose}
-            className="p-2 text-slate-400 hover:text-slate-200 hover:bg-slate-800 rounded-xl transition-colors cursor-pointer"
+            className="p-2 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-xl transition-colors cursor-pointer"
           >
             <X className="w-5 h-5" />
           </button>
@@ -125,33 +124,33 @@ ts.init_fastapi(app) # FastAPI 전역 에러 바인딩
         {/* Modal Body */}
         <div className="p-6 space-y-4 overflow-y-auto">
           {/* Tabs */}
-          <div className="flex border-b border-slate-800 gap-4">
+          <div className="flex border-b border-slate-200 dark:border-slate-800 gap-4">
             <button
               onClick={() => setActiveTab('sdk')}
               className={`pb-2 text-xs font-semibold flex items-center gap-1.5 transition-colors cursor-pointer ${
                 activeTab === 'sdk'
-                  ? 'border-b-2 border-blue-500 text-blue-400'
-                  : 'text-slate-400 hover:text-slate-200'
+                  ? 'border-b-2 border-blue-600 text-blue-600 dark:border-blue-500 dark:text-blue-400'
+                  : 'text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200'
               }`}
             >
-              <Download className="w-4 h-4" /> 1. SDK 코드
+              <Download className="w-4 h-4" /> 1. SDK 코드 (troubleshooter.py)
             </button>
             <button
               onClick={() => setActiveTab('python')}
               className={`pb-2 text-xs font-semibold flex items-center gap-1.5 transition-colors cursor-pointer ${
                 activeTab === 'python'
-                  ? 'border-b-2 border-blue-500 text-blue-400'
-                  : 'text-slate-400 hover:text-slate-200'
+                  ? 'border-b-2 border-blue-600 text-blue-600 dark:border-blue-500 dark:text-blue-400'
+                  : 'text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200'
               }`}
             >
-              <Terminal className="w-4 h-4" /> 2. 적용 예시 (Python/FastAPI)
+              <Terminal className="w-4 h-4" /> 2. 서비스 적용 예시 (Python)
             </button>
             <button
               onClick={() => setActiveTab('json')}
               className={`pb-2 text-xs font-semibold flex items-center gap-1.5 transition-colors cursor-pointer ${
                 activeTab === 'json'
-                  ? 'border-b-2 border-blue-500 text-blue-400'
-                  : 'text-slate-400 hover:text-slate-200'
+                  ? 'border-b-2 border-blue-600 text-blue-600 dark:border-blue-500 dark:text-blue-400'
+                  : 'text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200'
               }`}
             >
               <Code2 className="w-4 h-4" /> API JSON Spec
@@ -162,19 +161,19 @@ ts.init_fastapi(app) # FastAPI 전역 에러 바인딩
           <div className="relative">
             <button
               onClick={handleCopy}
-              className="absolute top-3 right-3 p-2 bg-slate-800/80 hover:bg-slate-700 text-slate-300 rounded-lg text-xs flex items-center gap-1 transition-colors border border-slate-700 cursor-pointer z-10"
+              className="absolute top-3 right-3 p-2 bg-slate-800/80 hover:bg-slate-700 text-slate-200 rounded-lg text-xs flex items-center gap-1 transition-colors border border-slate-700 cursor-pointer z-10"
             >
               {copied ? <Check className="w-3.5 h-3.5 text-emerald-400" /> : <Copy className="w-3.5 h-3.5" />}
               <span>{copied ? '복사됨' : '코드 복사'}</span>
             </button>
-            <pre className="bg-slate-950 border border-slate-800 rounded-xl p-4 text-xs font-mono text-slate-300 overflow-x-auto whitespace-pre-wrap leading-relaxed max-h-[400px]">
+            <pre className="bg-slate-900 border border-slate-800 rounded-xl p-4 text-xs font-mono text-slate-200 overflow-x-auto whitespace-pre-wrap leading-relaxed max-h-[400px]">
               {codeExamples[activeTab]}
             </pre>
           </div>
         </div>
 
         {/* Modal Footer */}
-        <div className="p-4 border-t border-slate-800 bg-slate-950/50 flex justify-end">
+        <div className="p-4 border-t border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-950/50 flex justify-end">
           <button
             onClick={onClose}
             className="px-4 py-2 bg-blue-600 hover:bg-blue-500 text-white font-medium rounded-xl text-xs transition-colors cursor-pointer"
