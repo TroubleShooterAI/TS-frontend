@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { X, Copy, Check, Terminal, Code2, Server } from 'lucide-react';
+import { X, Copy, Check, Terminal, Code2, Server, Download } from 'lucide-react';
 
 interface OnboardingModalProps {
   isOpen: boolean;
@@ -7,63 +7,90 @@ interface OnboardingModalProps {
 }
 
 export default function OnboardingModal({ isOpen, onClose }: OnboardingModalProps) {
-  const [activeTab, setActiveTab] = useState<'python' | 'node' | 'json'>('python');
+  const [activeTab, setActiveTab] = useState<'sdk' | 'python' | 'json'>('sdk');
   const [copied, setCopied] = useState(false);
 
   if (!isOpen) return null;
 
   const codeExamples = {
-    python: `# Python / FastAPI 연동 예시
+    sdk: `# troubleshooter.py (프로젝트 루트에 이 파일명으로 저장하세요)
+import sys
+import threading
 import requests
 import traceback
 
-def send_error_to_dashboard(service_name: str, exc: Exception):
-    url = "http://localhost:8000/api/v1/logs" # 백엔드 수집 URL
-    payload = {
-        "service_name": service_name,
-        "exception_type": type(exc).__name__,
-        "message": str(exc),
-        "stack_trace": traceback.format_exc()
-    }
-    try:
-        requests.post(url, json=payload, timeout=2)
-    except Exception as e:
-        print("로그 전송 실패:", e)
+class TroubleShooter:
+    def __init__(self, service_name: str, server_url: str = "http://localhost:8000"):
+        self.service_name = service_name
+        self.server_url = f"{server_url.rstrip('/')}/api/v1/logs"
+        self._install_global_handler()
 
-# 사용 예시
-try:
-    1 / 0
-except Exception as e:
-    send_error_to_dashboard("Payment-Service", e)`,
+    def _send_log_async(self, exc_type, exc_value, exc_traceback):
+        formatted_trace = "".join(traceback.format_exception(exc_type, exc_value, exc_traceback))
+        payload = {
+            "service_name": self.service_name,
+            "exception_type": exc_type.__name__ if hasattr(exc_type, '__name__') else str(exc_type),
+            "message": str(exc_value),
+            "stack_trace": formatted_trace
+        }
 
-    node: `// Node.js / Express 연동 예시
-const axios = require('axios');
+        def _worker():
+            try:
+                requests.post(self.server_url, json=payload, timeout=3)
+            except Exception as e:
+                print(f"[TroubleShooter SDK] 로그 전송 실패: {e}")
 
-async function sendErrorToDashboard(serviceName, error) {
-  try {
-    await axios.post('http://localhost:8000/api/v1/logs', {
-      service_name: serviceName,
-      exception_type: error.name || 'Error',
-      message: error.message,
-      stack_trace: error.stack
-    }, { timeout: 2000 });
-  } catch (err) {
-    console.error('로그 전송 실패:', err.message);
-  }
-}
+        threading.Thread(target=_worker, daemon=True).start()
 
-// Express 에러 핸들러 미들웨어
-app.use((err, req, res, next) => {
-  sendErrorToDashboard('User-API', err);
-  res.status(500).send('Internal Server Error');
-});`,
+    def _install_global_handler(self):
+        original_excepthook = sys.excepthook
 
-    json: `// HTTP POST /api/v1/logs 페이로드 규격
+        def custom_excepthook(exc_type, exc_value, exc_traceback):
+            if issubclass(exc_type, KeyboardInterrupt):
+                sys.__excepthook__(exc_type, exc_value, exc_traceback)
+                return
+            self._send_log_async(exc_type, exc_value, exc_traceback)
+            original_excepthook(exc_type, exc_value, exc_traceback)
+
+        sys.excepthook = custom_excepthook
+
+    def capture_exception(self, exc: Exception):
+        self._send_log_async(type(exc), exc, exc.__traceback__)
+
+    def init_fastapi(self, app):
+        from starlette.requests import Request
+        from starlette.responses import JSONResponse
+
+        @app.exception_handler(Exception)
+        async def fastapi_global_exception_handler(request: Request, exc: Exception):
+            self.capture_exception(exc)
+            return JSONResponse(
+                status_code=500,
+                content={"detail": "Internal Server Error (Captured by TroubleShooter)"}
+            )`,
+
+    python: `# main.py (기존 서비스 실행 스크립트)
+from troubleshooter import TroubleShooter
+
+# 1. 일반 Python 앱 연동 시 (단 1줄만 추가)
+ts = TroubleShooter(service_name="Payment-Service")
+
+
+# 2. FastAPI 프레임워크 연동 시
+from fastapi import FastAPI
+app = FastAPI()
+
+ts = TroubleShooter(service_name="Payment-API")
+ts.init_fastapi(app) # FastAPI 전역 에러 바인딩
+
+# 설정 끝! 이후 발생하는 모든 unhandled error는 대시보드로 자동 전송됩니다.`,
+
+    json: `// HTTP POST /api/v1/logs 페이로드 데이터 규격
 {
-  "service_name": "My-Backend-Service", // 서비스 구분 이름
-  "exception_type": "DatabaseConnectionError", // 에러 종류
-  "message": "Connection timed out after 5000ms", // 에러 메시지
-  "stack_trace": "Traceback (most recent call last):\n  File 'app.py'..." // 스택 트레이스
+  "service_name": "Payment-Service",
+  "exception_type": "ZeroDivisionError",
+  "message": "division by zero",
+  "stack_trace": "Traceback (most recent call last):\n  File 'app.py', line 10..."
 }`
   };
 
@@ -75,16 +102,16 @@ app.use((err, req, res, next) => {
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/80 backdrop-blur-sm p-4">
-      <div className="bg-slate-900 border border-slate-800 rounded-2xl max-w-2xl w-full shadow-2xl overflow-hidden flex flex-col max-h-[90vh]">
+      <div className="bg-slate-900 border border-slate-800 rounded-2xl max-w-3xl w-full shadow-2xl overflow-hidden flex flex-col max-h-[90vh]">
         {/* Modal Header */}
         <div className="p-6 border-b border-slate-800 flex items-center justify-between">
           <div>
             <h2 className="text-lg font-bold text-slate-100 flex items-center gap-2">
               <Server className="w-5 h-5 text-blue-400" />
-              새 서비스 연동 가이드
+              TroubleShooter SDK 연동 가이드
             </h2>
             <p className="text-xs text-slate-400 mt-1">
-              운영 중인 백엔드 서비스에서 발생한 예외를 TroubleShooter AI로 전송하세요.
+              `troubleshooter.py` 파일 하나만 추가하면 서비스의 에러가 자동으로 대시보드에 집계됩니다.
             </p>
           </div>
           <button
@@ -100,6 +127,16 @@ app.use((err, req, res, next) => {
           {/* Tabs */}
           <div className="flex border-b border-slate-800 gap-4">
             <button
+              onClick={() => setActiveTab('sdk')}
+              className={`pb-2 text-xs font-semibold flex items-center gap-1.5 transition-colors cursor-pointer ${
+                activeTab === 'sdk'
+                  ? 'border-b-2 border-blue-500 text-blue-400'
+                  : 'text-slate-400 hover:text-slate-200'
+              }`}
+            >
+              <Download className="w-4 h-4" /> 1. SDK 코드
+            </button>
+            <button
               onClick={() => setActiveTab('python')}
               className={`pb-2 text-xs font-semibold flex items-center gap-1.5 transition-colors cursor-pointer ${
                 activeTab === 'python'
@@ -107,17 +144,7 @@ app.use((err, req, res, next) => {
                   : 'text-slate-400 hover:text-slate-200'
               }`}
             >
-              <Terminal className="w-4 h-4" /> Python / FastAPI
-            </button>
-            <button
-              onClick={() => setActiveTab('node')}
-              className={`pb-2 text-xs font-semibold flex items-center gap-1.5 transition-colors cursor-pointer ${
-                activeTab === 'node'
-                  ? 'border-b-2 border-blue-500 text-blue-400'
-                  : 'text-slate-400 hover:text-slate-200'
-              }`}
-            >
-              <Code2 className="w-4 h-4" /> Node.js / Express
+              <Terminal className="w-4 h-4" /> 2. 적용 예시 (Python/FastAPI)
             </button>
             <button
               onClick={() => setActiveTab('json')}
@@ -127,7 +154,7 @@ app.use((err, req, res, next) => {
                   : 'text-slate-400 hover:text-slate-200'
               }`}
             >
-              JSON Spec
+              <Code2 className="w-4 h-4" /> API JSON Spec
             </button>
           </div>
 
@@ -135,12 +162,12 @@ app.use((err, req, res, next) => {
           <div className="relative">
             <button
               onClick={handleCopy}
-              className="absolute top-3 right-3 p-2 bg-slate-800/80 hover:bg-slate-700 text-slate-300 rounded-lg text-xs flex items-center gap-1 transition-colors border border-slate-700 cursor-pointer"
+              className="absolute top-3 right-3 p-2 bg-slate-800/80 hover:bg-slate-700 text-slate-300 rounded-lg text-xs flex items-center gap-1 transition-colors border border-slate-700 cursor-pointer z-10"
             >
               {copied ? <Check className="w-3.5 h-3.5 text-emerald-400" /> : <Copy className="w-3.5 h-3.5" />}
               <span>{copied ? '복사됨' : '코드 복사'}</span>
             </button>
-            <pre className="bg-slate-950 border border-slate-800 rounded-xl p-4 text-xs font-mono text-slate-300 overflow-x-auto whitespace-pre-wrap leading-relaxed">
+            <pre className="bg-slate-950 border border-slate-800 rounded-xl p-4 text-xs font-mono text-slate-300 overflow-x-auto whitespace-pre-wrap leading-relaxed max-h-[400px]">
               {codeExamples[activeTab]}
             </pre>
           </div>

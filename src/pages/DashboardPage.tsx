@@ -76,14 +76,6 @@ export default function DashboardPage() {
           </button>
 
           <button
-            onClick={fetchLogs}
-            className="p-2 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-xl transition-colors cursor-pointer"
-            title="새로고침"
-          >
-            <RefreshCw className={`w-4 h-4 ${isLoading ? 'animate-spin' : ''}`} />
-          </button>
-
-          <button
             onClick={handleLogout}
             className="flex items-center gap-2 bg-slate-800 hover:bg-red-500/20 hover:text-red-400 hover:border-red-500/30 border border-slate-700 text-slate-300 px-3 py-1.5 rounded-xl text-sm transition-all cursor-pointer"
           >
