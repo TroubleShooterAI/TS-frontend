@@ -1,75 +1,34 @@
-# React + TypeScript + Vite
+# TroubleShooter AI - Dashboard Frontend
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+운영 중인 백엔드 서비스에서 발생하는 예외(Exception) 및 스택 트레이스(Stack Trace)를 실시간으로 집계하고, **Gemini AI**를 통해 원인 분석 및 해결 가이드를 제공하는 모니터링 대시보드입니다.
 
-Currently, two official plugins are available:
+---
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+## 🌟 주요 기능
 
-## React Compiler
+* **실시간 로그 모니터링:** 수집된 에러 발생 현황(전체, 미해결, 해결 완료) 지표 한눈에 확인
+* **Gemini AI 원인 분석:** 예외 스택 트레이스 바탕의 원인 파악 및 해결 가이드 자동 제시
+* **다크 / 라이트 테마 지원:** 사용자 취향 및 환경에 맞춘 완벽한 테마 스위칭 (`useDarkMode` 구현)
+* **완벽한 반응형 Layout:** 모바일, 태블릿, 데스크톱 화면 크기에 맞춘 유연한 레이아웃 제공
+* **TroubleShooter SDK 연동 모달:** 단일 파일 SDK(`troubleshooter.py`) 및 프레임워크별 적용 코드 복사 기능 지원
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+---
 
-## Expanding the ESLint configuration
+## 🛠️ 기술 스택
 
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
+* **Core:** React 18, TypeScript, Vite
+* **Styling:** Tailwind CSS v4, Lucide React (Icons)
+* **State & Routing:** React Router v6
 
-```js
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
+---
 
-      // Remove tseslint.configs.recommended and replace with this
-      tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      tseslint.configs.stylisticTypeChecked,
+## 📁 프로젝트 구조
 
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
-
-```
-
-You can also install [eslint-plugin-react-x](https://npmx.dev/package/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://npmx.dev/package/eslint-plugin-react-dom) for React-specific lint rules:
-
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
-
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs['recommended-typescript'],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
-
-```
+```text
+src/
+├── api/              # 백엔드 REST API 연동 모듈 (errors.ts, auth.ts)
+├── components/       # 공통 UI 컴포넌트 (OnboardingModal.tsx 등)
+├── hooks/            # 커스텀 훅 (useDarkMode.ts)
+├── pages/            # 주요 페이지 컴포넌트 (DashboardPage.tsx, LoginPage.tsx 등)
+├── index.css         # Tailwind v4 및 테마 전역 CSS 설정
+└── App.tsx           # 라우팅 및 루트 레이아웃 설정
